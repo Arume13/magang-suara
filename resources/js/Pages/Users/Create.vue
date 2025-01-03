@@ -1,16 +1,23 @@
 <script setup>
 import { ref } from "vue";
-import { Link, router } from "@inertiajs/vue3";
-import Dropdown from "@/Components/Dropdown.vue";
-import DropdownLink from "@/Components/DropdownLink.vue";
-const form = ref({
+import { Link, router, useForm } from "@inertiajs/vue3";
+import { FwbButton, FwbAvatar, FwbFileInput, FwbInput } from "flowbite-vue";
+const form = useForm({
     name: "",
     email: "",
     password: "",
     password_confirmation: "",
+    user_status_id: "",
+    avatar: "",
 });
+
 const submit = () => {
-    router.post("/users", form.value);
+    form.post("/users");
+};
+
+const handleFileUpload = (e) => {
+    console.log(e.target.files[0]);
+    form.avatar = e.target.files[0];
 };
 
 defineProps({
@@ -18,7 +25,7 @@ defineProps({
         type: Array,
         default: () => [],
     },
-    userStatuses: {
+    status: {
         type: Array,
         default: () => [],
     },
@@ -30,24 +37,69 @@ defineProps({
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <Link href="/users"
-                        ><button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-3"
+                        ><fwb-button
+                            class="bg-red-500 hover:bg-red-800 text-white font-bold py-2 px-4 rounded my-3"
                         >
                             Back
-                        </button></Link
+                        </fwb-button></Link
                     >
 
-                    <form @submit.prevent="submit">
+                    <div
+                        v-if="!$page.props.errors"
+                        class="bg-green-100 border-l-4 mb-5 border-green-500 text-green-700 p-4 rounded-lg"
+                    >
+                        <p class="text-lg font-semibold">Success</p>
+                    </div>
+
+                    <div
+                        v-if="
+                            $page.props.errors.email ||
+                            $page.props.errors.password
+                        "
+                        class="bg-red-100 border-l-4 mb-5 border-red-500 text-red-700 p-4 rounded-lg"
+                    >
+                        <p class="text-lg font-semibold">Error</p>
+                        <div class="block">
+                            <p>
+                                {{ $page.props.errors.email }}
+                            </p>
+                            <p>
+                                {{ $page.props.errors.password }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <form
+                        @submit.prevent="submit"
+                        method="post"
+                        enctype="multipart/form-data"
+                    >
                         <div class="mb-4">
+                            <fwb-avatar size="lg"
+                                img="https://www.svgrepo.com/show/500470/avatar.svg"
+                                alt="ads"
+                                rounded
+                            />
+
+                            <label
+                                for="avatar"
+                                class="block text-gray-700 text-sm font-bold mb-2"
+                            >
+                                Avatar
+                            </label>
+                            <fwb-file-input
+                                class="mb-2"
+                                type="file" accept="image/png, image/gif, image/jpeg"
+                                @change="handleFileUpload"
+                            />
                             <label
                                 for="title"
                                 class="block text-gray-700 text-sm font-bold mb-2"
                             >
                                 Name:</label
                             >
-                            <input
+                            <fwb-input
                                 type="text"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 placeholder="Enter your name"
                                 v-model="form.name"
                             />
@@ -59,9 +111,8 @@ defineProps({
                             >
                                 Email:</label
                             >
-                            <input
+                            <fwb-input
                                 type="email"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 placeholder="mail@xxx.xxx"
                                 v-model="form.email"
                             />
@@ -73,9 +124,8 @@ defineProps({
                             >
                                 Password:</label
                             >
-                            <input
+                            <fwb-input
                                 type="password"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 placeholder="******"
                                 v-model="form.password"
                             />
@@ -87,63 +137,30 @@ defineProps({
                             >
                                 Confirm Password:</label
                             >
-                            <input
+                            <fwb-input
                                 type="password"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 placeholder="******"
                                 v-model="form.password_confirmation"
                             />
                         </div>
-                        <h1
-                            v-for="status in users.data"
-                            :key="status.user_status_id"
+
+                        <select
+                            class="block w-sm text-sm font-medium transition duration-75 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none"
+                            v-model="form.user_status_id"
                         >
-                            {{ status.user_status_id }}
-                        </h1>
-                        <Dropdown align="left" width="48">
-                            <template #trigger>
-                                <span class="inline-flex rounded-md">
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                    >
-                                        {{ $page.props.auth.user.name }}
+                            <option disabled value="">Please select one</option>
+                            <option
+                                v-for="item in status"
+                                :value="item.id"
+                                :key="item.id"
+                            >
+                                {{ item.name }}
+                            </option>
+                        </select>
 
-                                        <svg
-                                            class="-me-0.5 ms-2 h-4 w-4"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                fill-rule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clip-rule="evenodd"
-                                            />
-                                        </svg>
-                                    </button>
-                                </span>
-                            </template>
-
-                            <template #content>
-                                <DropdownLink
-                                    v-for="status in users.data"
-                                    :key="status.id"
-                                >
-                                    {{ status.user_status_id }}
-                                </DropdownLink>
-                                <DropdownLink
-                                    :href="route('logout')"
-                                    method="post"
-                                    as="button"
-                                >
-                                    Log Out
-                                </DropdownLink>
-                            </template>
-                        </Dropdown>
                         <button
                             type="submit"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-3 text-white"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded my-3 text-white"
                         >
                             Submit
                         </button>
@@ -152,34 +169,4 @@ defineProps({
             </div>
         </div>
     </div>
-    <!-- <div>
-        <h1>Create User</h1>
-        <form @submit.prevent="submit">
-            <input
-                v-model="form.name"
-                type="text"
-                placeholder="Name"
-                required
-            />
-            <input
-                v-model="form.email"
-                type="email"
-                placeholder="Email"
-                required
-            />
-            <input
-                v-model="form.password"
-                type="password"
-                placeholder="Password"
-                required
-            />
-            <input
-                v-model="form.password_confirmation"
-                type="password"
-                placeholder="Confirm Password"
-                required
-            />
-            <button type="submit">Create</button>
-        </form>
-    </div> -->
 </template>

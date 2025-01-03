@@ -14,14 +14,22 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i <= 10; $i++) {
-            User ::query()->withTrashed()->firstOrCreate([
-            'email' => $i.'@example.com',
-            ],[
-                'name' => $i,
-                'user_status_id' => 1,
-                'password' => Hash::make('password'),
+        // $admin = User::query()->updateOrCreate([
+        //     'email' => 'admin@mail.com',],
+        //     [
+        //     'name' => 'admin',
+        //     'password' => bcrypt('pass12345'),
+        //     'user_status_id' => 1
+        // ]);
+        // $admin->assignRole('admin');
+
+        $user =  User::query()->updateOrCreate([
+                'email' => 'user@mail.com',],
+                [
+                'name' => 'user',
+                'password' => bcrypt('pass12345'),
+                'user_status_id' => 1
             ]);
-        }
+        $user->givePermissionTo('show-user');
     }
 }

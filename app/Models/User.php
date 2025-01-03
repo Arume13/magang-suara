@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Traits\HasPermissions;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles, HasPermissions;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +25,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'user_status_id',
+        'avatar'
     ];
 
     /**
@@ -47,8 +52,14 @@ class User extends Authenticatable
         ];
     }
     
-    public function userStatus()
+    public function status()
     {
-        return $this->hasOne(UserStatus::class);
+        return $this->belongsTo(UserStatus::class , 'user_status_id');
     }
+
+    // public function permissions()
+    // {
+    //     return $this->belongsToMany(Permission::class, 'role_has_permissions', 'role_id', 'permission_id')
+    //         ->whereIn('role_id', $this->roles->pluck('id'));
+    // }
 }

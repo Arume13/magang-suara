@@ -14,12 +14,15 @@ defineProps({
     },
 });
 
-const user = usePage().props.auth.user;
+const {user, permissions} = usePage().props.auth;
+
 
 const form = useForm({
     name: user.name,
     email: user.email,
 });
+
+console.log(permissions);
 </script>
 
 <template>
